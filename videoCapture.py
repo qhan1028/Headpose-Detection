@@ -12,7 +12,6 @@ from hpd import processImage
 
 def main(args):
     filename = args.input_file
-    name, ext = osp.splitext(filename)
 
     if filename is None:
         isVideo = False
@@ -24,6 +23,7 @@ def main(args):
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        name, ext = osp.splitext(filename)
         out = cv2.VideoWriter(name + '_out.avi', fourcc, fps, (width, height))
 
     count = 0
