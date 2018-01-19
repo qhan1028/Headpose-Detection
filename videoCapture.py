@@ -35,11 +35,11 @@ def main(args):
         #frame = cv2.resize(frame, (400, 300), cv2.INTER_CUBIC)
         
         if isVideo:
-            frame = Process(frame, 1)
+            frame = processImage(frame, 1)
             out.write(frame)
         else:
             frame = cv2.flip(frame, 1)
-            frame = Process(frame, 1)
+            frame = processImage(frame, 1)
             # Display the resulting frame
             cv2.imshow('frame',frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -201,7 +201,7 @@ def main(args):
         if ext in ['.jpg', '.png', '.gif']: 
             print("> image:", filename)
             image = cv2.imread(inputdir + filename)
-            res = Process(image, 1, args["landmark_predictor"])
+            res = processImage(image, 1, args["landmark_predictor"])
             cv2.imwrite(savedir + name + '_out.png', res)
         else:
             print("> skip:", filename)
