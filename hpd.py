@@ -170,7 +170,7 @@ def processImage(im, lm_type=0, predictor="model/shape_predictor_68_face_landmar
     print('')
     t.tic()
     landmarks_2d, rect = getLandmark(im, predictor, lm_type=lm_type)
-    print('lm: %.4f' t.toc())
+    print('lm: %.4f' % t.toc())
 
     # if no face deteced, return original image
     if landmarks_2d is None: return im
@@ -178,7 +178,7 @@ def processImage(im, lm_type=0, predictor="model/shape_predictor_68_face_landmar
     # Headpose Detection
     t.tic()
     rvec, tvec, cm, dc = getHeadpose(im, landmarks_2d, lm_type=lm_type)
-    print('hp: %.4f' t.toc())
+    print('hp: %.4f' % t.toc())
 
     t.tic()
     # draw Rotation Angle Text
@@ -196,7 +196,7 @@ def processImage(im, lm_type=0, predictor="model/shape_predictor_68_face_landmar
 
     # draw Axis
     drawAxis(im, rvec, tvec, cm, dc)
-    print('draw: %.4f' t.toc())
+    print('draw: %.4f' % t.toc())
      
     return im
 
