@@ -49,7 +49,7 @@ def main(args):
 
     # When everything done, release the capture
     cap.release()
-    out.release()
+    if isVideo: out.release()
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':

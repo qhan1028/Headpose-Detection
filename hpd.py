@@ -10,10 +10,12 @@
 import argparse
 import cv2
 import numpy as np
-import math
 import dlib
 import os
 import os.path as osp
+from timer import Timer
+
+t = Timer()
 
 # 3D facial model coordinates
 landmarks_3d_list = [
@@ -165,14 +167,19 @@ def drawInfo(im, rvec, tvec, fontColor=(255, 255, 255)):
 
 def processImage(im, lm_type=0, predictor="model/shape_predictor_68_face_landmarks.dat"):
     # landmark Detection
+    t.tic()
     landmarks_2d, rect = getLandmark(im, predictor, lm_type=lm_type)
+    t.toc('landmark detection')
 
     # if no face deteced, return original image
     if landmarks_2d is None: return im
 
     # Headpose Detection
+    t.tic()
     rvec, tvec, cm, dc = getHeadpose(im, landmarks_2d, lm_type=lm_type)
+    t.toc('head pose detection')
 
+    t.tic()
     # draw Rotation Angle Text
     drawInfo(im, rvec, tvec, fontColor=(0, 0, 0))
      
@@ -188,6 +195,8 @@ def processImage(im, lm_type=0, predictor="model/shape_predictor_68_face_landmar
 
     # draw Axis
     drawAxis(im, rvec, tvec, cm, dc)
+
+    t.toc('draw')
      
     return im
 
