@@ -20,6 +20,6 @@ Please check Dockerfile for more information.
 * Headpose detection for images
   * `python3 hpd.py -i <input_dir> -s <save_dir>`
 * Headpose detection for videos
-  * `python3 videoCapture.py -i <input_video>`
+  * `python3 videoCapture.py -i <input_video> -o <output_file>`
 * Headpose detection for webcam
   * `python3 videoCapture.py`
