@@ -71,12 +71,16 @@ def getLandmark(im, predictor, lm_type=0):
     landmark_predictor = dlib.shape_predictor(predictor)
 
     # Detect bounding boxes of faces
+    t.tic()
     rects = bbox_detector(im, 1)
+    print(', bb: %.4f' % t.toc(), end='')
 
     if im is not None and len(rects) > 0:
     
         # Detect landmark of first face
+        t.tic()
         landmarks_2d = landmark_predictor(im, rects[0])
+        print(', lm: %.4f' % t.toc(), end='')
 
         # Choose specific landmarks corresponding to 3D facial model
         lm_2d_index = lm_2d_index_list[lm_type]
@@ -165,7 +169,7 @@ def Rot2Euler(rvec, tvec):
     return rx, ry, rz
 
 
-def drawInfo(im, rvec, tvec, fontColor=(255, 255, 255)):
+def drawInfo(im, rvec, tvec, fontColor=(0, 0, 0)):
     x, y, z = Rot2Euler(rvec, tvec)
     cv2.putText(im, "X: %.2f" % x, (50, 40), cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=fontColor)
     cv2.putText(im, "Y: %.2f" % y, (50, 60), cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=fontColor)
@@ -174,10 +178,7 @@ def drawInfo(im, rvec, tvec, fontColor=(255, 255, 255)):
 
 def processImage(im, lm_type=0, predictor="model/shape_predictor_68_face_landmarks.dat"):
     # landmark Detection
-    print('')
-    t.tic()
     landmarks_2d, rect = getLandmark(im, predictor, lm_type=lm_type)
-    print('lm: %.4f' % t.toc())
 
     # if no face deteced, return original image
     if landmarks_2d is None: return im
@@ -185,25 +186,25 @@ def processImage(im, lm_type=0, predictor="model/shape_predictor_68_face_landmar
     # Headpose Detection
     t.tic()
     rvec, tvec, cm, dc = getHeadpose(im, landmarks_2d, lm_type=lm_type)
-    print('hp: %.4f' % t.toc())
+    print(', hp: %.4f' % t.toc(), end='')
 
     t.tic()
     # draw Rotation Angle Text
-    drawInfo(im, rvec, tvec, fontColor=(0, 0, 0))
+    drawInfo(im, rvec, tvec, fontColor=(0, 255, 255))
      
     # Project a 3D point (0, 0, 1000.0) onto the image plane.
     # We use this to draw a line sticking out of the nose
-    drawDirection(im, rvec, tvec, cm, dc, landmarks_2d)
+#    drawDirection(im, rvec, tvec, cm, dc, landmarks_2d)
      
     # draw Landmark
     drawLandmark(im, landmarks_2d)
 
     # draw Bounding Box
-    drawBound(im, rect)
+#    drawBound(im, rect)
 
     # draw Axis
     drawAxis(im, rvec, tvec, cm, dc)
-    print('draw: %.4f' % t.toc())
+    print(', draw: %.4f' % t.toc(), end='')
      
     return im
 

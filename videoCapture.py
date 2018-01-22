@@ -24,7 +24,7 @@ def main(args):
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         name, ext = osp.splitext(filename)
-        out = cv2.VideoWriter(name + '_out.avi', fourcc, fps, (width, height))
+        out = cv2.VideoWriter(args.output_file, fourcc, fps, (width, height))
 
     count = 0
     lm_type = args.landmark_type
@@ -56,6 +56,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input-file', default=None)
+    parser.add_argument('-o', '--output-file', default=None)
     parser.add_argument('-lt', '--landmark-type', type=int, default=1)
     args = parser.parse_args()
     main(args)
