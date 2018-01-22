@@ -119,9 +119,9 @@ def getHeadpose(im, landmarks_2d, verbose=False, lm_type=0):
     return rotation_vector, translation_vector, camera_matrix, dist_coeffs
 
 
-def drawDirection(im, rvec, tvec, cm, dc, landmarks_2d):
-    (nose_end_point2D, _) = cv2.projectPoints(np.array([(0.0, 0.0, 1000.0)]), rvec, tvec, cm, dc)
-    p1 = ( int(landmarks_2d[0][0]), int(landmarks_2d[0][1]))
+def drawDirection(im, rvec, tvec, cm, dc, landmarks_2d, lm_type=0):
+    (nose_end_point2D, _) = cv2.projectPoints(np.array([(0.0, 0.0, 10.0)]), rvec, tvec, cm, dc)
+    p1 = ( int(landmarks_2d[2][0]), int(landmarks_2d[2][1]))
     p2 = ( int(nose_end_point2D[0][0][0]), int(nose_end_point2D[0][0][1]))
     cv2.line(im, p1, p2, (0, 255, 255), 2)
 
