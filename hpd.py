@@ -42,20 +42,28 @@ landmarks_3d_list = [
         [-2.774015, -2.080775,  5.048531],   # 39 mouth right corner
         [ 0.000000, -3.116408,  6.097667],   # 45 mouth central bottom corner
         [ 0.000000, -7.415691,  4.070434]    # 6 chin corner
+    ], dtype=np.double),
+    np.array([
+        [ 5.311432,  5.485328,  3.987654],   # 13 left eye left corner
+        [ 1.789930,  5.393625,  4.413414],   # 17 left eye right corner
+        [ 0.000000,  0.000000,  6.763430],   # 52 nose bottom edge
+        [-1.789930,  5.393625,  4.413414],   # 25 right eye left corner
+        [-5.311432,  5.485328,  3.987654]    # 21 right eye right corner
     ], dtype=np.double)
 ]
 
 # 2d facial landmark list
 lm_2d_index_list = [
     [30, 8, 36, 45, 48, 54],
-    [17, 21, 22, 26, 36, 39, 42, 45, 31, 35, 48, 54, 57, 8]
+    [17, 21, 22, 26, 36, 39, 42, 45, 31, 35, 48, 54, 57, 8], # 14 points
+    [36, 39, 33, 42, 45] # 5 points
 ]
 
-def class2np(landmarks):
-    coords = np.zeros((68, 2), dtype=np.int)
-    for i in range(68):
-        coords[i] = (landmarks.part(i).x, landmarks.part(i).y)
-    return coords
+def class2np(landmarks, index):
+    coords = []
+    for i in index:
+        coords += [[landmarks.part(i).x, landmarks.part(i).y]]
+    return np.array(coords).astype(np.int)
 
 
 def getLandmark(im, predictor, lm_type=0):
@@ -69,11 +77,10 @@ def getLandmark(im, predictor, lm_type=0):
     
         # Detect landmark of first face
         landmarks_2d = landmark_predictor(im, rects[0])
-        landmarks_2d = class2np(landmarks_2d)
 
         # Choose specific landmarks corresponding to 3D facial model
         lm_2d_index = lm_2d_index_list[lm_type]
-        landmarks_2d = landmarks_2d[lm_2d_index]
+        landmarks_2d = class2np(landmarks_2d, lm_2d_index)
 
         return landmarks_2d.astype(np.double), rects[0]
 
