@@ -7,11 +7,11 @@ import numpy as np
 import cv2
 import argparse
 import os.path as osp
-from hpd import processImage
+from hpd import HPD
 
 
 def main(args):
-    filename = args.input_file
+    filename = args["input_file"]
 
     if filename is None:
         isVideo = False
@@ -27,7 +27,7 @@ def main(args):
         out = cv2.VideoWriter(args.output_file, fourcc, fps, (width, height))
 
     count = 0
-    lm_type = args.landmark_type
+    hpd = HPD(args["landmark_type"], args["landmark_predictor"], args["box_length"])
     while(cap.isOpened()):
         # Capture frame-by-frame
         print('\rframe: %d' % count, end='')
@@ -36,14 +36,15 @@ def main(args):
         #frame = cv2.resize(frame, (400, 300), cv2.INTER_CUBIC)
         
         if isVideo:
-            frame = processImage(frame, lm_type)
+            frame = hpd.processImage(frame)
             if frame is None: 
                 break
             else:
                 out.write(frame)
         else:
             frame = cv2.flip(frame, 1)
-            frame = processImage(frame, lm_type)
+            frame = hpd.processImage(frame)
+
             # Display the resulting frame
             cv2.imshow('frame',frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -58,8 +59,10 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input-file', default=None)
-    parser.add_argument('-o', '--output-file', default=None)
-    parser.add_argument('-lt', '--landmark-type', type=int, default=1)
-    args = parser.parse_args()
+    parser.add_argument('-i', dest='input_file', default=None)
+    parser.add_argument('-o', dest='output_file', default=None)
+    parser.add_argument('-lt', dest='landmark_type', type=int, default=1, help='Landmark type.')
+    parser.add_argument('-lp', dest='landmark_predictor', default='model/shape_predictor_68_face_landmarks.dat', help="Landmark predictor data file.")
+    parser.add_argument('-b', dest='box_length', type=float, default=10.0)
+    args = vars(parser.parse_args())
     main(args)
