@@ -220,7 +220,7 @@ def main(args):
     inputdir = args["input_dir"]
     savedir = args["save_dir"]
 
-    hpd = HPD(args["landmark_type"], args["landmark_predictor"])
+    hpd = HPD(args["landmark_type"], args["landmark_predictor"], args["box_length"])
 
     for filename in os.listdir(inputdir):
         name, ext = osp.splitext(filename)
