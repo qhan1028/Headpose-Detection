@@ -27,6 +27,7 @@ def main(args):
         out = cv2.VideoWriter(name + '_out.avi', fourcc, fps, (width, height))
 
     count = 0
+    lm_type = args.landmark_type
     while(cap.isOpened()):
         # Capture frame-by-frame
         print('\rframe: %d' % count, end='')
@@ -35,11 +36,11 @@ def main(args):
         #frame = cv2.resize(frame, (400, 300), cv2.INTER_CUBIC)
         
         if isVideo:
-            frame = processImage(frame, 1)
+            frame = processImage(frame, lm_type)
             out.write(frame)
         else:
             frame = cv2.flip(frame, 1)
-            frame = processImage(frame, 1)
+            frame = processImage(frame, lm_type)
             # Display the resulting frame
             cv2.imshow('frame',frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -55,5 +56,6 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input-file', default=None)
+    parser.add_argument('-lt', '--landmark-type', type=int, default=1)
     args = parser.parse_args()
     main(args)
