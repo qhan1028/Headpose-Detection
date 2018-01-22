@@ -72,10 +72,13 @@ def getLandmark(im, predictor, lm_type=0):
 
     # Detect bounding boxes of faces
     t.tic()
-    rects = bbox_detector(im, 1)
+    if im is not None:
+        rects = bbox_detector(im, 1)
+    else:
+        rects = []
     print(', bb: %.4f' % t.toc(), end='')
 
-    if im is not None and len(rects) > 0:
+    if len(rects) > 0:
     
         # Detect landmark of first face
         t.tic()
