@@ -37,7 +37,10 @@ def main(args):
         
         if isVideo:
             frame = processImage(frame, lm_type)
-            out.write(frame)
+            if frame is None: 
+                break
+            else:
+                out.write(frame)
         else:
             frame = cv2.flip(frame, 1)
             frame = processImage(frame, lm_type)

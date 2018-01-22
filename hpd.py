@@ -80,14 +80,14 @@ def getLandmark(im, predictor, lm_type=0):
 
     if len(rects) > 0:
     
-        # Detect landmark of first face
         t.tic()
+        # Detect landmark of first face
         landmarks_2d = landmark_predictor(im, rects[0])
-        print(', lm: %.4f' % t.toc(), end='')
 
         # Choose specific landmarks corresponding to 3D facial model
         lm_2d_index = lm_2d_index_list[lm_type]
         landmarks_2d = class2np(landmarks_2d, lm_2d_index)
+        print(', lm: %.4f' % t.toc(), end='')
 
         return landmarks_2d.astype(np.double), rects[0]
 
