@@ -24,7 +24,7 @@ def main(args):
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         name, ext = osp.splitext(filename)
-        out = cv2.VideoWriter(args.output_file, fourcc, fps, (width, height))
+        out = cv2.VideoWriter(args["output_file"], fourcc, fps, (width, height))
 
     count = 0
     hpd = HPD(args["landmark_type"], args["landmark_predictor"], args["box_length"])
