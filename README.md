@@ -18,7 +18,7 @@ Please check Dockerfile for more information.
 
 ### Usage
 * Headpose detection for images
-  * `python3 hpd.py -i <input_dir> -s <save_dir>`
+  * `python3 hpd.py -i <input_dir> -o <output_dir>`
 * Headpose detection for videos
   * `python3 videoCapture.py -i <input_video> -o <output_file>`
 * Headpose detection for webcam
