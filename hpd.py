@@ -7,12 +7,12 @@
 #   Modified by Qhan
 #
 
+import os
+import os.path as osp
 import argparse
 import cv2
 import numpy as np
 import dlib
-import os
-import os.path as osp
 from timer import Timer
 
 
@@ -112,11 +112,6 @@ class HPD():
             return None, None
 
 
-    def drawLandmark(self, im, landmarks_2d):
-        for p in landmarks_2d:
-            cv2.circle(im, (int(p[0]), int(p[1])), 3, (0,0,255), -1) 
-        
-
     def getHeadpose(self, im, landmarks_2d, verbose=False):
         h, w, c = im.shape
         f = w # column size = x axis length (focal length)
@@ -142,16 +137,23 @@ class HPD():
         return rotation_vector, translation_vector, camera_matrix, dist_coeffs
 
 
-    def drawDirection(self, im, rvec, tvec, cm, dc, landmarks_2d):
-        (nose_end_point2D, _) = cv2.projectPoints(np.array([(0.0, 0.0, self.b)]), rvec, tvec, cm, dc)
-        p1 = ( int(landmarks_2d[self.n, 0]), int(landmarks_2d[self.n, 1]))
-        p2 = ( int(nose_end_point2D[0, 0, 0]), int(nose_end_point2D[0, 0, 1]))
-        cv2.line(im, p1, p2, (0, 255, 255), 2)
+    # rotation vector to euler angles
+    def getAngles(self, rvec, tvec):
+        rmat = cv2.Rodrigues(rvec)[0]
+        P = np.hstack((rmat, tvec)) # projection matrix [R | t]
+        degrees = -cv2.decomposeProjectionMatrix(P)[6]
+        rx, ry, rz = degrees[:, 0]
+        return [rx, ry, rz]
 
 
     def drawBound(self, im, rect):
         x1, y1, x2, y2 = rect.left(), rect.top(), rect.right(), rect.bottom()
         cv2.rectangle(im, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+
+    def drawLandmark(self, im, landmarks_2d):
+        for p in landmarks_2d:
+            cv2.circle(im, (int(p[0]), int(p[1])), 3, (0,0,255), -1) 
 
 
     # axis lines index
@@ -166,29 +168,30 @@ class HPD():
         for p in self.box_lines:
             p1, p2 = tuple(pbox[p[0]].astype(int)), tuple(pbox[p[1]].astype(int))
             cv2.line(im, p1, p2, (255, 0, 0), 2)
+        
+
+    def drawDirection(self, im, rvec, tvec, cm, dc, landmarks_2d):
+        (nose_end_point2D, _) = cv2.projectPoints(np.array([(0.0, 0.0, self.b)]), rvec, tvec, cm, dc)
+        p1 = ( int(landmarks_2d[self.n, 0]), int(landmarks_2d[self.n, 1]))
+        p2 = ( int(nose_end_point2D[0, 0, 0]), int(nose_end_point2D[0, 0, 1]))
+        cv2.line(im, p1, p2, (0, 255, 255), 2)
 
 
-    def Rot2Euler(self, rvec, tvec):
-        rmat = cv2.Rodrigues(rvec)[0]
-        P = np.hstack((rmat, tvec)) # projection matrix [R | t]
-        degrees = -cv2.decomposeProjectionMatrix(P)[6]
-        rx, ry, rz = degrees[:, 0]
-        return rx, ry, rz
-
-
-    def drawInfo(self, im, rvec, tvec, fontColor=(0, 0, 0)):
-        x, y, z = self.Rot2Euler(rvec, tvec)
+    def drawInfo(self, im, angles, fontColor=(0, 255, 255)):
+        x, y, z = angles
         cv2.putText(im, "X: %+06.2f" % x, (50, 40), cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=fontColor)
         cv2.putText(im, "Y: %+06.2f" % y, (50, 70), cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=fontColor)
         cv2.putText(im, "Z: %+06.2f" % z, (50, 100), cv2.FONT_HERSHEY_DUPLEX, fontScale=1.0, color=fontColor)
 
 
-    def processImage(self, im):
+    # return image and angles
+    def processImage(self, im, draw=True):
         # landmark Detection
         landmarks_2d, rect = self.getLandmark(im)
 
         # if no face deteced, return original image
-        if landmarks_2d is None: return im
+        if landmarks_2d is None:
+            return im, None
 
         # Headpose Detection
         t.tic()
@@ -196,39 +199,46 @@ class HPD():
         print(', hp: %.2f' % t.toc(), end='ms')
 
         t.tic()
-        # draw Bounding Box
-        self.drawBound(im, rect)
-        
-        # draw Landmark
-        self.drawLandmark(im, landmarks_2d)
+        angles = self.getAngles(rvec, tvec)
+        print(', ga: %.2f' % t.toc(), end='ms')
 
-        # draw Axis
-        self.drawAxis(im, rvec, tvec, cm, dc)
+        if draw:
+            t.tic()
 
-        # Project a 3D point (0, 0, 1000.0) onto the image plane.
-        # We use this to draw a line sticking out of the nose
-        self.drawDirection(im, rvec, tvec, cm, dc, landmarks_2d)
+            # draw Bounding Box
+            self.drawBound(im, rect)
+            
+            # draw Landmark
+            self.drawLandmark(im, landmarks_2d)
 
-        # draw Rotation Angle Text
-        self.drawInfo(im, rvec, tvec, fontColor=(0, 255, 255)) 
-        print(', draw: %.2f' % t.toc(), end='ms' + ' ' * 10)
+            # draw Axis
+            self.drawAxis(im, rvec, tvec, cm, dc)
+
+            # Project a 3D point (0, 0, self.b) onto the image plane.
+            # We use this to draw a line sticking out of the nose
+            self.drawDirection(im, rvec, tvec, cm, dc, landmarks_2d)
+
+            # draw Rotation Angle Text
+            self.drawInfo(im, angles) 
+            print(', draw: %.2f' % t.toc(), end='ms' + ' ' * 10)
          
-        return im
+        return im, angles
 
 
 def main(args):
-    inputdir = args["input_dir"]
-    savedir = args["save_dir"]
+    in_dir = args["input_dir"]
+    out_dir = args["output_dir"]
 
+    # Initialize head pose detection
     hpd = HPD(args["landmark_type"], args["landmark_predictor"], args["box_length"])
 
-    for filename in os.listdir(inputdir):
+    for filename in os.listdir(in_dir):
         name, ext = osp.splitext(filename)
         if ext in ['.jpg', '.png', '.gif']: 
             print("> image:", filename, end='')
-            image = cv2.imread(inputdir + filename)
-            res = hpd.processImage(image)
-            cv2.imwrite(savedir + name + '_out.png', res)
+            image = cv2.imread(in_dir + filename)
+            res, angles = hpd.processImage(image)
+            cv2.imwrite(out_dir + name + '_out.png', res)
         else:
             print("> skip:", filename, end='')
         print('')
@@ -236,12 +246,15 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', dest='input_dir', default='images/')
-    parser.add_argument('-s', dest='save_dir', default='res/')
-    parser.add_argument('-lt', dest='landmark_type', type=int, default=1, help='Landmark type.')
-    parser.add_argument('-lp', dest='landmark_predictor', default='model/shape_predictor_68_face_landmarks.dat', help="Landmark predictor data file.")
-    parser.add_argument('-b', dest='box_length', type=float, default=10.0)
+    parser.add_argument('-i', metavar='DIR', dest='input_dir', default='images/')
+    parser.add_argument('-o', metavar='DIR', dest='output_dir', default='res/')
+    parser.add_argument('-lt', metavar='N', dest='landmark_type', type=int, default=1, help='Landmark type.')
+    parser.add_argument('-lp', metavar='FILE', dest='landmark_predictor', 
+                        default='model/shape_predictor_68_face_landmarks.dat', help="Landmark predictor data file.")
+    parser.add_argument('-b', metavar='N', dest='box_length', type=float, default=10.0)
     args = vars(parser.parse_args())
 
-    if not osp.exists(args["save_dir"]): os.mkdir(args["save_dir"])
+    if not osp.exists(args["output_dir"]): os.mkdir(args["output_dir"])
+    if args["output_dir"][-1] != '/': args["output_dir"] += '/'
+    if args["input_dir"][-1] != '/': args["input_dir"] += '/'
     main(args)
