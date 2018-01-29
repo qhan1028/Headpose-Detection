@@ -187,7 +187,8 @@ class HPD():
     # return image and angles
     def processImage(self, im, draw=True):
         # landmark Detection
-        landmarks_2d, rect = self.getLandmark(im)
+        im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+        landmarks_2d, rect = self.getLandmark(im_gray)
 
         # if no face deteced, return original image
         if landmarks_2d is None:
@@ -236,9 +237,9 @@ def main(args):
         name, ext = osp.splitext(filename)
         if ext in ['.jpg', '.png', '.gif']: 
             print("> image:", filename, end='')
-            image = cv2.cvtColor(cv2.imread(in_dir + filename), cv2.COLOR_BGR2RGB)
+            image = cv2.imread(in_dir + filename)
             res, angles = hpd.processImage(image)
-            cv2.imwrite(out_dir + name + '_out.png', cv2.cvtColor(res, cv2.COLOR_RGB2BGR))
+            cv2.imwrite(out_dir + name + '_out.png', res)
         else:
             print("> skip:", filename, end='')
         print('')
