@@ -236,9 +236,9 @@ def main(args):
         name, ext = osp.splitext(filename)
         if ext in ['.jpg', '.png', '.gif']: 
             print("> image:", filename, end='')
-            image = cv2.imread(in_dir + filename)
+            image = cv2.cvtColor(cv2.imread(in_dir + filename), cv2.COLOR_BGR2RGB)
             res, angles = hpd.processImage(image)
-            cv2.imwrite(out_dir + name + '_out.png', res)
+            cv2.imwrite(out_dir + name + '_out.png', cv2.cvtColor(res, cv2.COLOR_RGB2BGR))
         else:
             print("> skip:", filename, end='')
         print('')
