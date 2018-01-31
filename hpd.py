@@ -24,12 +24,12 @@ class HPD():
     # 3D facial model coordinates
     landmarks_3d_list = [
         np.array([
-            [   0.0,    0.0,    0.0],    # Nose tip
-            [   0.0, -330.0,  -65.0],    # Chin
-            [-225.0,  170.0, -135.0],    # Left eye left corner
-            [ 225.0,  170.0, -135.0],    # Right eye right corner
-            [-150.0, -150.0, -125.0],    # Left Mouth corner
-            [ 150.0, -150.0, -125.0]     # Right mouth corner 
+            [ 0.000,  0.000,   0.000],    # Nose tip
+            [ 0.000, -8.250,  -1.625],    # Chin
+            [-5.625,  4.250,  -3.375],    # Left eye left corner
+            [ 5.625,  4.250,  -3.375],    # Right eye right corner
+            [-3.750, -3.750,  -3.125],    # Left Mouth corner
+            [ 3.750, -3.750,  -3.125]     # Right mouth corner 
         ], dtype=np.double),
         np.array([
             [ 0.000000,  0.000000,  6.763430],   # 52 nose bottom edge

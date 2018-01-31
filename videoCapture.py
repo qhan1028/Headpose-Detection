@@ -29,7 +29,7 @@ def main(args):
         out = cv2.VideoWriter(args["output_file"], fourcc, fps, (width, height))
 
     # Initialize head pose detection
-    hpd = HPD(args["landmark_type"], args["landmark_predictor"], args["box_length"])
+    hpd = HPD(args["landmark_type"], args["landmark_predictor"])
 
     count = 0
     while(cap.isOpened()):
@@ -66,6 +66,5 @@ if __name__ == '__main__':
     parser.add_argument('-lt', metavar='N', dest='landmark_type', type=int, default=1, help='Landmark type.')
     parser.add_argument('-lp', metavar='FILE', dest='landmark_predictor', 
                         default='model/shape_predictor_68_face_landmarks.dat', help="Landmark predictor data file.")
-    parser.add_argument('-b', metavar='N', dest='box_length', type=float, default=10.0)
     args = vars(parser.parse_args())
     main(args)
