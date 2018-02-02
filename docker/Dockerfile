@@ -3,16 +3,6 @@ FROM ubuntu:latest
 MAINTAINER Qhan <qhan@ailabs.tw>
 
 ## -----------------------------------------------------------------------------
-## setup timezone. this is totally optional, but can make log files more readible
-#
-ENV TZ=Asia/Taipei
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata \
- && echo $TZ | tee /etc/timezone \
- && rm /etc/localtime \
- && dpkg-reconfigure --frontend noninteractive tzdata
-
-
-## -----------------------------------------------------------------------------
 ## Install libraries
 
 RUN apt-get update && apt-get install -y \
@@ -24,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     curl \
     graphicsmagick \
-	htop \
+    htop \
     libgraphicsmagick1-dev \
     libatlas-dev \
     libavcodec-dev \
@@ -38,10 +28,10 @@ RUN apt-get update && apt-get install -y \
     python-dev \
     python-numpy \
     python-protobuf \
-	python3-pip \
+    python3-pip \
     software-properties-common \
-	tree \
-	vim \
+    tree \
+    vim \
     zip \
     && apt-get clean && rm -rf /tmp/* /var/tmp/*
 
