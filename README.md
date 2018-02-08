@@ -24,4 +24,5 @@ Please check Dockerfile for more information.
 * Headpose detection for webcam
   * `python3 videoCapture.py`
 ---
-### [Demo](https://youtu.be/MMCbQCBtch8)
+### Demo
+[![](https://i.imgur.com/sdOM88J.png)](https://youtu.be/MMCbQCBtch8)
