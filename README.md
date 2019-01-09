@@ -6,20 +6,20 @@
 * https://github.com/lincolnhard/head-pose-estimation
 
 ### Requirements
-* Python 3.6
+* Python 3.7
   * dlib
   * opencv-python
   * numpy
 
-Please check Dockerfile for more information.
+* Please check `Dockerfile` for more information.
 
 ### Setup
 * `./setup.sh`
 
 ### Usage
 * Headpose detection for images
-  * `python3 hpd.py -i <input_dir> -o <output_dir>`
+  * `python3.7 headpose.py -i [input_dir] -o [output_dir]`
 * Headpose detection for videos
-  * `python3 videoCapture.py -i <input_video> -o <output_file>`
+  * `python3.7 headpose_video.py -i [input_video] -o [output_file]`
 * Headpose detection for webcam
-  * `python3 videoCapture.py`
+  * `python3.7 headpose_video.py`

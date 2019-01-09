@@ -1,0 +1,3 @@
+dlib
+numpy
+opencv-python

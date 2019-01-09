@@ -1,13 +1,14 @@
 #
-#   Video Capture
+#   Headpose Detection for Video
 #   Written by Qhan
+#   Last Update: 2019.1.9
 #
 
 import numpy as np
 import cv2
 import argparse
 import os.path as osp
-from hpd import HPD
+from headpose import HeadposeDetection
 
 
 def main(args):
@@ -29,7 +30,7 @@ def main(args):
         out = cv2.VideoWriter(args["output_file"], fourcc, fps, (width, height))
 
     # Initialize head pose detection
-    hpd = HPD(args["landmark_type"], args["landmark_predictor"])
+    hpd = HeadposeDetection(args["landmark_type"], args["landmark_predictor"])
 
     count = 0
     while(cap.isOpened()):
@@ -38,17 +39,17 @@ def main(args):
         ret, frame = cap.read()
         
         if isVideo:
-            frame, angles = hpd.processImage(frame)
+            frame, angles = hpd.process_image(frame)
             if frame is None: 
                 break
             else:
                 out.write(frame)
         else:
             frame = cv2.flip(frame, 1)
-            frame, angles = hpd.processImage(frame)
+            frame, angles = hpd.process_image(frame)
 
             # Display the resulting frame
-            cv2.imshow('frame',frame)
+            cv2.imshow('frame', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 

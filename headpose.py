@@ -1,25 +1,23 @@
 #
 #   Headpose Detection
-#   Referenced code:
-#       https://www.learnopencv.com/head-pose-estimation-using-opencv-and-dlib
-#       https://www.pyimagesearch.com/2017/04/03/facial-landmarks-dlib-opencv-python
-#       https://github.com/lincolnhard/head-pose-estimation
 #   Modified by Qhan
+#   Last Update: 2019.1.9
 #
 
-import os
-import os.path as osp
 import argparse
 import cv2
-import numpy as np
 import dlib
+import numpy as np
+import os
+import os.path as osp
+
 from timer import Timer
-from draw import Draw
+from utils import Annotator
 
 
 t = Timer()
 
-class HPD():
+class HeadposeDetection():
 
     # 3D facial model coordinates
     landmarks_3d_list = [
@@ -65,7 +63,7 @@ class HPD():
     ]
 
     def __init__(self, lm_type=1, predictor="model/shape_predictor_68_face_landmarks.dat", verbose=True):
-        self.bbox_detector = dlib.get_frontal_face_detector()
+        self.bbox_detector = dlib.get_frontal_face_detector()        
         self.landmark_predictor = dlib.shape_predictor(predictor)
 
         self.lm_2d_index = self.lm_2d_index_list[lm_type]
@@ -74,21 +72,19 @@ class HPD():
         self.v = verbose
 
 
-    def class2np(self, landmarks):
+    def to_numpy(self, landmarks):
         coords = []
         for i in self.lm_2d_index:
             coords += [[landmarks.part(i).x, landmarks.part(i).y]]
         return np.array(coords).astype(np.int)
 
-
-    def getLandmark(self, im):
+    def get_landmarks(self, im):
         # Detect bounding boxes of faces
         t.tic()
-        if im is not None:
-            rects = self.bbox_detector(im, 1)
-        else:
-            rects = []
-        if self.v: print(', bb: %.2f' % t.toc(), end='ms')
+        rects = self.bbox_detector(im, 0) if im is not None else []
+            
+        if self.v: 
+            print(', bb: %.2f' % t.toc(), end='ms')
 
         if len(rects) > 0:
             # Detect landmark of first face
@@ -96,16 +92,19 @@ class HPD():
             landmarks_2d = self.landmark_predictor(im, rects[0])
 
             # Choose specific landmarks corresponding to 3D facial model
-            landmarks_2d = self.class2np(landmarks_2d)
-            if self.v: print(', lm: %.2f' % t.toc(), end='ms')
+            landmarks_2d = self.to_numpy(landmarks_2d)
+            if self.v: 
+                print(', lm: %.2f' % t.toc(), end='ms')
+                
+            rect = [rects[0].left(), rects[0].top(), rects[0].right(), rects[0].bottom()]
 
-            return landmarks_2d.astype(np.double), rects[0]
+            return landmarks_2d.astype(np.double), rect
 
         else:
             return None, None
 
 
-    def getHeadpose(self, im, landmarks_2d, verbose=False):
+    def get_headpose(self, im, landmarks_2d, verbose=False):
         h, w, c = im.shape
         f = w # column size = x axis length (focal length)
         u0, v0 = w / 2, h / 2 # center of image plane
@@ -131,19 +130,38 @@ class HPD():
 
 
     # rotation vector to euler angles
-    def getAngles(self, rvec, tvec):
+    def get_angles(self, rvec, tvec):
         rmat = cv2.Rodrigues(rvec)[0]
         P = np.hstack((rmat, tvec)) # projection matrix [R | t]
         degrees = -cv2.decomposeProjectionMatrix(P)[6]
         rx, ry, rz = degrees[:, 0]
         return [rx, ry, rz]
 
-
+    # moving average history
+    history = {'lm': [], 'bbox': [], 'rvec': [], 'tvec': [], 'cm': [], 'dc': []}
+    
+    def add_history(self, values):
+        for (key, value) in zip(self.history, values):
+            self.history[key] += [value]
+            
+    def pop_history(self):
+        for key in self.history:
+            self.history[key].pop(0)
+            
+    def get_history_len(self):
+        return len(self.history['lm'])
+            
+    def get_ma(self):
+        res = []
+        for key in self.history:
+            res += [np.mean(self.history[key], axis=0)]
+        return res
+    
     # return image and angles
-    def processImage(self, im, draw=True):
+    def process_image(self, im, draw=True, ma=3):
         # landmark Detection
         im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-        landmarks_2d, bbox = self.getLandmark(im_gray)
+        landmarks_2d, bbox = self.get_landmarks(im_gray)
 
         # if no face deteced, return original image
         if landmarks_2d is None:
@@ -151,18 +169,27 @@ class HPD():
 
         # Headpose Detection
         t.tic()
-        rvec, tvec, cm, dc = self.getHeadpose(im, landmarks_2d)
-        if self.v: print(', hp: %.2f' % t.toc(), end='ms')
+        rvec, tvec, cm, dc = self.get_headpose(im, landmarks_2d)
+        if self.v: 
+            print(', hp: %.2f' % t.toc(), end='ms')
+            
+        if ma > 1:
+            self.add_history([landmarks_2d, bbox, rvec, tvec, cm, dc])
+            if self.get_history_len() > ma:
+                self.pop_history()
+            landmarks_2d, bbox, rvec, tvec, cm, dc = self.get_ma()
 
         t.tic()
-        angles = self.getAngles(rvec, tvec)
-        if self.v: print(', ga: %.2f' % t.toc(), end='ms')
+        angles = self.get_angles(rvec, tvec)
+        if self.v: 
+            print(', ga: %.2f' % t.toc(), end='ms')
 
         if draw:
             t.tic()
-            draw = Draw(im, angles, bbox, landmarks_2d, rvec, tvec, cm, dc, b=10.0)
-            im = draw.drawAll()
-            if self.v: print(', draw: %.2f' % t.toc(), end='ms' + ' ' * 10)
+            annotator = Annotator(im, angles, bbox, landmarks_2d, rvec, tvec, cm, dc, b=10.0)
+            im = annotator.draw_all()
+            if self.v: 
+                print(', draw: %.2f' % t.toc(), end='ms' + ' ' * 10)
          
         return im, angles
 
@@ -172,14 +199,14 @@ def main(args):
     out_dir = args["output_dir"]
 
     # Initialize head pose detection
-    hpd = HPD(args["landmark_type"], args["landmark_predictor"])
+    hpd = HeadposeDetection(args["landmark_type"], args["landmark_predictor"])
 
     for filename in os.listdir(in_dir):
         name, ext = osp.splitext(filename)
         if ext in ['.jpg', '.png', '.gif']: 
             print("> image:", filename, end='')
             image = cv2.imread(in_dir + filename)
-            res, angles = hpd.processImage(image)
+            res, angles = hpd.process_image(image)
             cv2.imwrite(out_dir + name + '_out.png', res)
         else:
             print("> skip:", filename, end='')

@@ -1,6 +1,7 @@
 #
-#   Draw Headpose Annotations
+#   Headpose Detection Utils
 #   Written by Qhan
+#   Last Update: 2019.1.9
 #
 
 import numpy as np
@@ -16,9 +17,9 @@ class Color():
     black = (0, 0, 0)
 
 
-class Draw():
+class Annotator():
     
-    def __init__(self, im, angles, bbox, lm, rvec, tvec, cm, dc, b=10.0):
+    def __init__(self, im, angles=None, bbox=None, lm=None, rvec=None, tvec=None, cm=None, dc=None, b=10.0):
         self.im = im
 
         self.angles = angles
@@ -41,21 +42,24 @@ class Draw():
         self.ps = self.ls
 
 
-    def drawAll(self):
-        self.drawBound()
-        self.drawLandmark()
-        self.drawAxis()
-        self.drawDirection()
-        self.drawInfo()
+    def draw_all(self):
+        self.draw_bbox()
+        self.draw_landmarks()
+        self.draw_axes()
+        self.draw_direction()
+        self.draw_info()
+        return self.im
+
+    def get_image(self):
         return self.im
 
 
-    def drawBound(self):
-        x1, y1, x2, y2 = self.bbox.left(), self.bbox.top(), self.bbox.right(), self.bbox.bottom()
+    def draw_bbox(self):
+        x1, y1, x2, y2 = np.array(self.bbox).astype(int)
         cv2.rectangle(self.im, (x1, y1), (x2, y2), Color.green, self.ls)
 
 
-    def drawLandmark(self):
+    def draw_landmarks(self):
         for p in self.lm:
             point = tuple(p.astype(int))
             cv2.circle(self.im, point, self.ps, Color.red, -1)
@@ -67,7 +71,7 @@ class Draw():
         (4, 5), (5, 6), (6, 7), (7, 4),
         (0, 4), (1, 5), (2, 6), (3, 7)
     ])
-    def drawAxis(self):
+    def draw_axes(self):
         (projected_box, _) = cv2.projectPoints(self.box, self.rvec, self.tvec, self.cm, self.dc)
         pbox = projected_box[:, 0]
         for p in self.box_lines:
@@ -76,14 +80,14 @@ class Draw():
             cv2.line(self.im, p1, p2, Color.blue, self.ls)
 
 
-    def drawDirection(self):
+    def draw_direction(self):
         (nose_end_point2D, _) = cv2.projectPoints(np.array([(0.0, 0.0, self.b)]), self.rvec, self.tvec, self.cm, self.dc)
         p1 = self.nose
         p2 = tuple(nose_end_point2D[0, 0].astype(int))
         cv2.line(self.im, p1, p2, Color.yellow, self.ls)
 
 
-    def drawInfo(self, fontColor=Color.yellow):
+    def draw_info(self, fontColor=Color.yellow):
         x, y, z = self.angles
         px, py, dy = int(5 * self.fs), int(25 * self.fs), int(30 * self.fs)
         font = cv2.FONT_HERSHEY_DUPLEX
