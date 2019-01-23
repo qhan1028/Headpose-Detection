@@ -80,21 +80,21 @@ class HeadposeDetection():
 
     def get_landmarks(self, im):
         # Detect bounding boxes of faces
-        t.tic()
+        t.tic('bb')
         rects = self.bbox_detector(im, 0) if im is not None else []
             
         if self.v: 
-            print(', bb: %.2f' % t.toc(), end='ms')
+            print(', bb: %.2f' % t.toc('bb'), end='ms')
 
         if len(rects) > 0:
             # Detect landmark of first face
-            t.tic()
+            t.tic('lm')
             landmarks_2d = self.landmark_predictor(im, rects[0])
 
             # Choose specific landmarks corresponding to 3D facial model
             landmarks_2d = self.to_numpy(landmarks_2d)
             if self.v: 
-                print(', lm: %.2f' % t.toc(), end='ms')
+                print(', lm: %.2f' % t.toc('lm'), end='ms')
                 
             rect = [rects[0].left(), rects[0].top(), rects[0].right(), rects[0].bottom()]
 
@@ -168,10 +168,10 @@ class HeadposeDetection():
             return im, None
 
         # Headpose Detection
-        t.tic()
+        t.tic('hp')
         rvec, tvec, cm, dc = self.get_headpose(im, landmarks_2d)
         if self.v: 
-            print(', hp: %.2f' % t.toc(), end='ms')
+            print(', hp: %.2f' % t.toc('hp'), end='ms')
             
         if ma > 1:
             self.add_history([landmarks_2d, bbox, rvec, tvec, cm, dc])
@@ -179,17 +179,17 @@ class HeadposeDetection():
                 self.pop_history()
             landmarks_2d, bbox, rvec, tvec, cm, dc = self.get_ma()
 
-        t.tic()
+        t.tic('ga')
         angles = self.get_angles(rvec, tvec)
         if self.v: 
-            print(', ga: %.2f' % t.toc(), end='ms')
+            print(', ga: %.2f' % t.toc('ga'), end='ms')
 
         if draw:
-            t.tic()
+            t.tic('draw')
             annotator = Annotator(im, angles, bbox, landmarks_2d, rvec, tvec, cm, dc, b=10.0)
             im = annotator.draw_all()
             if self.v: 
-                print(', draw: %.2f' % t.toc(), end='ms' + ' ' * 10)
+                print(', draw: %.2f' % t.toc('draw'), end='ms' + ' ' * 10)
          
         return im, angles
 

@@ -4,11 +4,12 @@
 #   Last Update: 2019.1.9
 #
 
-import numpy as np
-import cv2
 import argparse
+import cv2
+import numpy as np
 import os.path as osp
-from headpose import HeadposeDetection
+
+import headpose
 
 
 def main(args):
@@ -17,8 +18,8 @@ def main(args):
     if filename is None:
         isVideo = False
         cap = cv2.VideoCapture(0)
-        cap.set(3, 640)
-        cap.set(4, 480)
+        cap.set(3, args['wh'][0])
+        cap.set(4, args['wh'][1])
     else:
         isVideo = True
         cap = cv2.VideoCapture(filename)
@@ -30,7 +31,7 @@ def main(args):
         out = cv2.VideoWriter(args["output_file"], fourcc, fps, (width, height))
 
     # Initialize head pose detection
-    hpd = HeadposeDetection(args["landmark_type"], args["landmark_predictor"])
+    hpd = headpose.HeadposeDetection(args["landmark_type"], args["landmark_predictor"])
 
     count = 0
     while(cap.isOpened()):
@@ -51,6 +52,7 @@ def main(args):
             # Display the resulting frame
             cv2.imshow('frame', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
+                headpose.t.summary()
                 break
 
         count += 1
@@ -64,6 +66,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', metavar='FILE', dest='input_file', default=None, help='Input video. If not given, web camera will be used.')
     parser.add_argument('-o', metavar='FILE', dest='output_file', default=None, help='Output video.')
+    parser.add_argument('-wh', metavar='N', dest='wh', default=[720, 480], nargs=2, help='Frame size.')
     parser.add_argument('-lt', metavar='N', dest='landmark_type', type=int, default=1, help='Landmark type.')
     parser.add_argument('-lp', metavar='FILE', dest='landmark_predictor', 
                         default='model/shape_predictor_68_face_landmarks.dat', help="Landmark predictor data file.")

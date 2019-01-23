@@ -9,7 +9,7 @@ import numpy as np
 
 class Timer():
     
-    def __init__(self, update=False):
+    def __init__(self, update=True):
         self.stage, self.start = {}, {}
         self.update = update
         self.start_anonymous = time.time() * 1000
@@ -55,9 +55,9 @@ class Timer():
             new_avg = self.stage[name]['avg'] * 0.9 + t * 0.1
             self.stage[name]['avg'] = new_avg
         
-        print(name + ': %7.4f ms, ' % (new_avg), end='')
+        #print(name + ': %7.4f ms, ' % (new_avg), end='')
 
     def summary(self):
-        print('%15s: %8s %12s %12s' % ('Stage', 'Min', 'Max', 'Avg'))
+        print('\n%15s: %8s %12s %12s' % ('Stage', 'Min', 'Max', 'Avg'))
         for name, t in self.stage.items():
             print('%15s' % (name) + ': %8.4f ms, %8.4f ms, %8.4f ms' % (t['min'], t['max'], t['avg']))
